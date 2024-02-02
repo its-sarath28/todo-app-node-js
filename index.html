@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo - App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>   
+
+    <style>
+        body{
+            background-color: #264653;
+        }
+
+        .top, .tasks{
+            background-color: #dee2e6;
+        }
+
+        .taskItems{
+            height: 25rem;            
+        }
+
+        .taskss{
+            background-color: #e9edc9;
+        }
+
+        .tasks:not(:last-child){            
+            margin-bottom: 5px;
+        }
+    </style>
+
+    <div class="container">
+        <div class="row mt-4 d-flex justify-content-center align-items-center">
+            <div class="col-md-8 col-lg-7 bg-white rounded pb-4">
+                <div class="top rounded p-lg-3 p-2 mt-3">
+                    <div class="row align-items-center mb-2">
+                        <div class="col-sm-6 col-12 align-items-center">
+                            <h3 class="text-sm-start text-center fw-bold">Todo List</h3>
+                        </div>
+                        <div class="col-sm-6 col-12 text-sm-end">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-9 col-6 text-end">Total:</dt>
+                                <dd class="col-sm-3 col-6 text-sm-start">
+                                    <p class="mb-0 fw-bold text-dark">{{totalTaskCount}}</p>
+                                </dd>
+                    
+                                <dt class="col-sm-9 col-6 text-end">Completed:</dt>
+                                <dd class="col-sm-3 col-6 text-sm-start">
+                                    <p class="mb-0 fw-bold text-success">{{completedTaskCount}}</p>
+                                </dd>
+                    
+                                <dt class="col-sm-9 col-6 text-end">Pending:</dt>
+                                <dd class="col-sm-3 col-6 text-sm-start">
+                                    <p class="mb-0 fw-bold text-danger">{{pendingTaskCount}}</p>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <form action="/todo" method="post" onsubmit="return checkInput()" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" name="task" id="task" class="form-control" placeholder="Enter task here... (Eg: Wash clothes, Buy grocery)">
+                            <input type="submit" value="Add" class="btn btn-primary">
+                        </div>
+                    </form>
+                </div>
+                
+                
+                <div class="container taskItems mt-4 overflow-y-auto px-0">
+                    <ul id="list_items" class="list-group"></ul>
+                </div>
+
+                
+                <!-- Edit Modal -->
+                <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="editModalLabel">Edit Task</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="text" name="taskToUpdate" id="taskToUpdate" class="form-control">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" name="modalUpdate" class="btn btn-success" data-bs-dismiss="modal">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="deleteModalLabel">Confirm delete</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" name="modalDelete" class="btn btn-danger" data-bs-dismiss="modal">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Alerting when the input is empty
+        const checkInput = () => {
+            const task = document.getElementById('task').value;
+
+            if(task.trim() === ''){
+                alert(`Enter a task !`)
+                return false
+            }
+
+            return true
+        }
+
+        const fetchTasks = async() => {
+            const response = await fetch('/tasks');
+            const data = await response.json();
+            const listItems = document.getElementById('list_items');
+            listItems.innerHTML = '';
+
+
+            data.forEach(task => {
+                // Creates a LIST for the tasks
+                const li = document.createElement('li');
+                li.dataset.taskId = task._id // Assigns the _id of each element to be used in update/delete 
+                li.className='list-group-item d-flex align-items-center tasks'
+
+                // Creates a CHECK-BOX
+                const checkbox = document.createElement('input')
+                checkbox.type='checkbox'
+                checkbox.className='form-check-input me-3 border'
+
+                // Checks whether the checkbox is checked or not while retrieving from database
+                checkbox.checked = task.completed
+
+                // Creating a LABEL for 'task'
+                const label = document.createElement('label')
+                label.className="form-check-label me-auto"
+
+                // Creating a DIV for the 'Task' content inside the label
+                const checkBoxTask = document.createElement('div')
+                checkBoxTask.className="d-flex justify-content-between align-items-center flex-grow-1";
+                
+                
+                checkBoxTask.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
+                if(checkbox.checked){
+                    checkBoxTask.classList.add('text-muted')
+                }
+
+                const btnContainer = document.createElement('div')
+                btnContainer.className='d-flex flex-column flex-sm-row'
+
+                // Creates an EDIT Button
+                const editBtn = document.createElement('button')
+                editBtn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`
+                editBtn.className ="btn btn-primary"
+                editBtn.setAttribute('data-bs-toggle', 'modal')
+                editBtn.setAttribute('data-bs-target', '#editModal')
+                editBtn.setAttribute('data-task-id', task._id)
+                editBtn.addEventListener('click', () => {
+                    const taskId = editBtn.getAttribute('data-task-id')
+                    const task = data.find(item => item._id === taskId)
+
+                    editFromModal(task)
+                })
+
+
+                
+                const modalBodyInput = document.querySelector('#editModal #taskToUpdate');
+                const updateModalBtn = document.querySelector('#editModal [name="modalUpdate"]');
+
+                const editFromModal = (task) => {
+                    modalBodyInput.value = task.task;
+
+                    updateModalBtn.addEventListener('click', async () => {
+                       const newTask = modalBodyInput.value;
+                       if (newTask !== null && newTask.trim() !== '') {
+                            await updateTask(task._id, newTask, task.completed);                            
+                        }
+                    }, { once: true });
+                };
+
+                
+                // Creates a DELETE Button
+                const deleteBtn = document.createElement('button')
+                deleteBtn.innerHTML = `<i class="fa-solid fa-trash"></i>`
+                deleteBtn.className = "btn btn-danger ms-sm-3 mt-3 mt-sm-0"
+                deleteBtn.setAttribute('data-bs-toggle',  'modal')
+                deleteBtn.setAttribute('data-bs-target','#deleteModal')
+                deleteBtn.setAttribute('data-task-id', task._id)
+                deleteBtn.addEventListener('click', () => {
+                    const taskId = deleteBtn.getAttribute('data-task-id')
+                    const task = data.find(item => item._id === taskId)
+
+                    deleteFromModal(task)
+                })
+
+
+                const deleteFromModal = (task) => {
+                    const modalBody = document.querySelector('#deleteModal .modal-body')
+                    const deleteModalBtn = document.querySelector('#deleteModal [name="modalDelete"]')
+
+                    modalBody.innerHTML = `<p class="mb-0"> <span class="ms-2 fw-semibold">Task: </span>${task.task}</p>`
+
+                    deleteModalBtn.addEventListener('click', () => {
+                        deleteTask(task._id)
+                    })
+                }
+
+
+                // Updating the checkbox and linethrough to the DB
+                checkbox.addEventListener('change', async() => {
+                    checkBoxTask.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
+                    if (checkbox.checked) {
+                        checkBoxTask.classList.add('text-muted')
+                    }else{
+                        checkBoxTask.classList.remove('text-muted')
+                    }
+                    await updateTask(task._id,  task.task, checkbox.checked)                    
+                })                
+
+                // Appending contents 
+                li.appendChild(checkbox)
+                li.appendChild(label)
+                label.appendChild(checkBoxTask)
+                checkBoxTask.appendChild(document.createTextNode(task.task))
+                li.appendChild(checkBoxTask)
+                btnContainer.appendChild(editBtn)
+                btnContainer.appendChild(deleteBtn)
+                li.appendChild(btnContainer)
+
+                // Arranging newly added Task ath the top
+                listItems.insertBefore(li, listItems.firstChild);
+                
+            });
+        }
+
+        // Logic for UPDATEING the task
+        const updateTask = async (taskId, newTask, completed) => {
+            await fetch('/update-task', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    taskId,
+                    newTask,
+                    completed
+                })
+            })
+
+            
+            location.reload()
+            fetchTasks()
+        }
+
+        // Logic for DELETING the task
+        const deleteTask = async (taskId) => {
+            await fetch('/delete-task', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    taskId
+                })
+            })
+
+            // Reloading the webpage every time after performing the deletion
+            location.reload()
+            fetchTasks()
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchTasks)
+                
+    </script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    
+</body>
+</html>
