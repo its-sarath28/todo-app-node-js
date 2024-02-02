@@ -1,7 +1,7 @@
 ## TODO APP using NodeJS
 ---
 
-This is a basic TODO Web Application
+This is a basic TODO Web Application built by using only NodeJS
 
 #### Stack used:
 ***
