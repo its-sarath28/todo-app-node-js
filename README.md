@@ -4,6 +4,8 @@
 
 This is a basic TODO Web Application
 
+![Toto App Logo](/assets/TODO.jpg)
+
 #### Stack used:
 
 ---
