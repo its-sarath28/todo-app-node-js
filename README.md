@@ -1,10 +1,15 @@
 ## TODO APP using NodeJS
+
 ---
 
 This is a basic TODO Web Application
 
+![TODO App](/assets/TODO.png")
+
 #### Stack used:
-***
+
+---
+
 - HTML
 - CSS
 - Bootstrap
@@ -12,7 +17,9 @@ This is a basic TODO Web Application
 - MongoDB
 
 ### Features:
-***
+
+---
+
 - Add task
 - Edit task
 - Delete task
