@@ -2,7 +2,7 @@
 
 ---
 
-This is a basic TODO Web Application
+This is a basic TODO Web Application built by using only NodeJS
 
 ![TODO App](/assets/TODO.png")
 
